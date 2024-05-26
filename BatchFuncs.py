@@ -32,7 +32,6 @@ def prepare_batch_promptA(prompt, settings:ScheduleSettings, index):
     pattern = r'`.*?`'  # set so the expression will be read between two backticks (``)
     regex = re.compile(pattern)
     prompt_parsed = str(prompt)
-
     for match in regex.finditer(prompt_parsed):
         matched_string = match.group(0)
         parsed_string = matched_string.replace(
@@ -120,6 +119,7 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
     if sorted_prompts[-1][0] != str(settings.max_frames):
         sorted_prompts.append((str(settings.max_frames), sorted_prompts[-1][1]))
 
+
     # Setup containers for interpolated prompts
     cur_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
     nxt_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
@@ -141,7 +141,9 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
     current_key = 0
     next_key = 0
     # For every keyframe prompt except the last
-    for i in range(0, len(sorted_prompts) - 1):
+    # for i in range(0, len(sorted_prompts) - 1):
+    print(f'----Fizz----start_frame', settings.start_frame, settings.start_frame+settings.max_frames-1)
+    for i in range(settings.start_frame, settings.start_frame+settings.max_frames):
         # Get current and next keyframe
         current_key = int(sorted_prompts[i][0])
         next_key = int(sorted_prompts[i + 1][0])
@@ -156,25 +158,26 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
         # Get current and next keyframes' positive and negative prompts (if any)
         current_prompt = sorted_prompts[i][1]
         next_prompt = sorted_prompts[i + 1][1]
+        print(f'----Fizz----current_prompt{i}', current_prompt)
 
         # Calculate how much to shift the weight from current to next prompt at each frame.
         weight_step = 1 / (next_key - current_key)
-
-        for f in range(max(current_key, 0), min(next_key, len(cur_prompt_series))):
-            next_weight = weight_step * (f - current_key)
-            current_weight = 1 - next_weight
-
-            # add the appropriate prompts and weights to their respective containers.
-            weight_series[f] = 0.0
-            cur_prompt_series[f] = str(current_prompt)
-            nxt_prompt_series[f] = str(next_prompt)
-
-            weight_series[f] += current_weight
-
+        # for f in range(max(current_key, 0), min(next_key, len(cur_prompt_series))):
+        #     next_weight = weight_step * (f - current_key)
+        #     current_weight = 1 - next_weight
+        #
+        #     # add the appropriate prompts and weights to their respective containers.
+        #     weight_series[f] = 0.0
+        #     # cur_prompt_series[f] = str(current_prompt)
+        #     # nxt_prompt_series[f] = str(next_prompt)
+        #     weight_series[f] += current_weight
+        weight_series[abs(settings.start_frame-i)] = 1.0
+        cur_prompt_series[abs(settings.start_frame-i)] = str(current_prompt)
+        nxt_prompt_series[abs(settings.start_frame-i)] = str(next_prompt)
+        print(f'----Fizz----weight_series{abs(settings.start_frame-i)}', weight_series)
         current_key = next_key
         next_key = settings.max_frames
         current_weight = 0.0
-
     index_offset = 0
 
     # Evaluate the current and next prompt's expressions
@@ -186,11 +189,13 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
             if(settings.start_frame >= i):
                 if(settings.end_frame > 0):
                     if(settings.end_frame > i):
+                        print('----Fizz----11')
                         print("\n", "Max Frames: ", settings.max_frames, "\n", "frame index: ", (settings.start_frame + i),
                               "\n", "Current Prompt: ",
                               cur_prompt_series[i], "\n", "Next Prompt: ", nxt_prompt_series[i], "\n", "Strength : ",
                               weight_series[i], "\n")
                 else:
+                    print('----Fizz----22')
                     print("\n", "Max Frames: ", settings.max_frames, "\n", "frame index: ", (settings.start_frame + i), "\n", "Current Prompt: ",
                           cur_prompt_series[i], "\n", "Next Prompt: ", nxt_prompt_series[i], "\n", "Strength : ",
                           weight_series[i], "\n")
