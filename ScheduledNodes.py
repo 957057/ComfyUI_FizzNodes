@@ -125,8 +125,8 @@ class BatchPromptSchedule:
                 }
         }
 
-    RETURN_TYPES = ("CONDITIONING", "CONDITIONING",)
-    RETURN_NAMES = ("POS", "NEG",)
+    RETURN_TYPES = ("CONDITIONING", "CONDITIONING", "STRING", "STRING",)
+    RETURN_NAMES = ("POS", "NEG", "PROMPT_start", "PROMPT_end")
     FUNCTION = "animate"
 
     CATEGORY = "FizzNodes 📅🅕🅝/BatchScheduleNodes"
