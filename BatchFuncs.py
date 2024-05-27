@@ -116,8 +116,8 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
         sorted_prompts.insert(0, ("0", sorted_prompts[0][1]))
 
     # Automatically set the last keyframe to the maximum number of frames
-    if sorted_prompts[-1][0] != str(settings.max_frames):
-        sorted_prompts.append((str(settings.max_frames), sorted_prompts[-1][1]))
+    # if sorted_prompts[-1][0] != str(settings.max_frames):
+    #     sorted_prompts.append((str(settings.max_frames), sorted_prompts[-1][1]))
 
 
     # Setup containers for interpolated prompts
@@ -142,11 +142,16 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
     next_key = 0
     # For every keyframe prompt except the last
     # for i in range(0, len(sorted_prompts) - 1):
-    print(f'----Fizz----start_frame', settings.start_frame, settings.start_frame+settings.max_frames-1)
+    print(f'----Fizz----start_frame', settings.start_frame, settings.start_frame+settings.max_frames)
     for i in range(settings.start_frame, settings.start_frame+settings.max_frames):
         # Get current and next keyframe
         current_key = int(sorted_prompts[i][0])
-        next_key = int(sorted_prompts[i + 1][0])
+        try:
+            next_key = int(sorted_prompts[i + 1][0])
+
+        except:
+            next_key = len(sorted_prompts)
+            print(f'----Fizz----next_key超了重新赋值为', next_key)
 
         # Ensure there's no weird ordering issues or duplication in the animation prompts
         # (unlikely because we sort above, and the json parser will strip dupes)
@@ -157,8 +162,13 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
 
         # Get current and next keyframes' positive and negative prompts (if any)
         current_prompt = sorted_prompts[i][1]
-        next_prompt = sorted_prompts[i + 1][1]
+        try:
+            next_prompt = sorted_prompts[i + 1][1]
+        except:
+            next_prompt = sorted_prompts[i][1]
+            print(f'----Fizz----next_prompt超了', next_prompt)
         print(f'----Fizz----current_prompt{i}', current_prompt)
+
 
         # Calculate how much to shift the weight from current to next prompt at each frame.
         weight_step = 1 / (next_key - current_key)
@@ -174,10 +184,7 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
         weight_series[abs(settings.start_frame-i)] = 1.0
         cur_prompt_series[abs(settings.start_frame-i)] = str(current_prompt)
         nxt_prompt_series[abs(settings.start_frame-i)] = str(next_prompt)
-        print(f'----Fizz----weight_series{abs(settings.start_frame-i)}', weight_series)
-        current_key = next_key
-        next_key = settings.max_frames
-        current_weight = 0.0
+        # print(f'----Fizz----weight_series{abs(settings.start_frame-i)}', weight_series)
     index_offset = 0
 
     # Evaluate the current and next prompt's expressions
@@ -189,13 +196,13 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
             if(settings.start_frame >= i):
                 if(settings.end_frame > 0):
                     if(settings.end_frame > i):
-                        print('----Fizz----11')
+                        # print('----Fizz----11')
                         print("\n", "Max Frames: ", settings.max_frames, "\n", "frame index: ", (settings.start_frame + i),
                               "\n", "Current Prompt: ",
                               cur_prompt_series[i], "\n", "Next Prompt: ", nxt_prompt_series[i], "\n", "Strength : ",
                               weight_series[i], "\n")
                 else:
-                    print('----Fizz----22')
+                    # print('----Fizz----22')
                     print("\n", "Max Frames: ", settings.max_frames, "\n", "frame index: ", (settings.start_frame + i), "\n", "Current Prompt: ",
                           cur_prompt_series[i], "\n", "Next Prompt: ", nxt_prompt_series[i], "\n", "Strength : ",
                           weight_series[i], "\n")
