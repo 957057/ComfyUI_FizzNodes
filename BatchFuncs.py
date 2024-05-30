@@ -121,11 +121,19 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
 
 
     # Setup containers for interpolated prompts
-    cur_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
-    nxt_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
+    if settings.start_frame+settings.max_frames > len(sorted_prompts):
+        print(f'----Fizz----收尾帧数', len(sorted_prompts)-settings.start_frame)
+        cur_prompt_series = pd.Series([np.nan for a in range(len(sorted_prompts)-settings.start_frame)])
+        nxt_prompt_series = pd.Series([np.nan for a in range(len(sorted_prompts)-settings.start_frame)])
+        weight_series = [np.nan] * (len(sorted_prompts)-settings.start_frame)
+    else:
+        # cur_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
+        cur_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
+        # nxt_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
+        nxt_prompt_series = pd.Series([np.nan for a in range(settings.max_frames)])
 
-    # simple array for strength values
-    weight_series = [np.nan] * settings.max_frames
+        # simple array for strength values
+        weight_series = [np.nan] * settings.max_frames
 
     # in case there is only one keyed prompt, set all prompts to that prompt
     if len(sorted_prompts) == 1:
@@ -144,6 +152,9 @@ def interpolate_prompt_seriesA(animation_prompts, settings:ScheduleSettings):
     # for i in range(0, len(sorted_prompts) - 1):
     print(f'----Fizz----start_frame', settings.start_frame, settings.start_frame+settings.max_frames)
     for i in range(settings.start_frame, settings.start_frame+settings.max_frames):
+        if i >= len(sorted_prompts):
+            print(f'----Fizz----达到最大prompt了')
+            break
         # Get current and next keyframe
         current_key = int(sorted_prompts[i][0])
         try:
