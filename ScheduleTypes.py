@@ -37,7 +37,7 @@ def prompt_schedule(settings:ScheduleSettings,clip):
 def batch_prompt_schedule(settings:ScheduleSettings,clip):
     # Clear whitespace and newlines from json
     animation_prompts = process_input_text(settings.text_g)
-
+    print(f'----Fizz----animation_prompts', len(animation_prompts))
     # Add pre_text and app_text then split the combined prompt into positive and negative prompts
     pos, neg = batch_split_weighted_subprompts(animation_prompts, settings.pre_text_G, settings.app_text_G)
 
@@ -48,8 +48,12 @@ def batch_prompt_schedule(settings:ScheduleSettings,clip):
     # Apply composable diffusion across the batch
     p = BatchPoolAnimConditioning(pos_cur_prompt, pos_nxt_prompt, weight, clip, )
     n = BatchPoolAnimConditioning(neg_cur_prompt, neg_nxt_prompt, weight, clip, )
-    # return positive and negative conditioning as well as the current and next prompts for each
-    return (p, n, pos_cur_prompt[0], pos_nxt_prompt[settings.max_frames-1],)
+    if settings.start_frame + settings.max_frames > len(animation_prompts):
+        print(f'----Fizz----超过最大帧数了', len(animation_prompts))
+        return (p, n, pos_cur_prompt[0], pos_nxt_prompt[len(animation_prompts)-settings.start_frame-1],)
+    else:
+        # return positive and negative conditioning as well as the current and next prompts for each
+        return (p, n, pos_cur_prompt[0], pos_nxt_prompt[settings.max_frames-1],)
 
 def batch_prompt_schedule_latentInput(settings:ScheduleSettings,clip, latents):
     # Clear whitespace and newlines from json
