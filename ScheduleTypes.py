@@ -44,7 +44,8 @@ def batch_prompt_schedule(settings:ScheduleSettings,clip):
     # Interpolate the positive prompt weights over frames
     pos_cur_prompt, pos_nxt_prompt, weight = interpolate_prompt_seriesA(pos, settings)
     neg_cur_prompt, neg_nxt_prompt, weight = interpolate_prompt_seriesA(neg, settings)
-
+    print(f'----Fizz----pos_cur_prompt', pos_cur_prompt)
+    print(f'----Fizz----pos_nxt_prompt', pos_nxt_prompt)
     # Apply composable diffusion across the batch
     p = BatchPoolAnimConditioning(pos_cur_prompt, pos_nxt_prompt, weight, clip, )
     n = BatchPoolAnimConditioning(neg_cur_prompt, neg_nxt_prompt, weight, clip, )
@@ -53,7 +54,7 @@ def batch_prompt_schedule(settings:ScheduleSettings,clip):
         return (p, n, pos_cur_prompt[0], pos_nxt_prompt[len(animation_prompts)-settings.start_frame-1],)
     else:
         # return positive and negative conditioning as well as the current and next prompts for each
-        return (p, n, pos_cur_prompt[0], pos_nxt_prompt[settings.max_frames-1],)
+        return (p, n, pos_cur_prompt[settings.max_frames-1])
 
 def batch_prompt_schedule_latentInput(settings:ScheduleSettings,clip, latents):
     # Clear whitespace and newlines from json
